@@ -1,0 +1,6 @@
+@SimpleWKTApplication_HostAddress = http://localhost:5049
+
+GET {{SimpleWKTApplication_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
