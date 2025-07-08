@@ -1,10 +1,12 @@
+using NetTopologySuite.Geometries;
+
 namespace SimpleWKTApplication.Entity
 {
-    public class Point
+    public class Spatial
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string  WKT{ get; set; }
+        public Geometry  WKT{ get; set; }
 
     }
 }

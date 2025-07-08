@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SimpleWKTApplication.Response;
 using System.Linq.Expressions;
+using SimpleWKTApplication;
 
 namespace SimpleWKTApplication.Data
 {
@@ -13,53 +13,62 @@ namespace SimpleWKTApplication.Data
             _context = context;
         }
 
-        public Result Add(T entity)
+        public T Add(T entity)
         {
             _context.Set<T>().Add(entity);
-            return new Result { Success = true, Message = "Entity added", Data = entity };
+            _context.SaveChanges();
+            return entity;
         }
 
-        public Result AddRange(IEnumerable<T> entities)
+        public IEnumerable<T> AddRange(IEnumerable<T> entities)
         {
             _context.Set<T>().AddRange(entities);
-            return new Result { Success = true, Message = "Entities added", Data = entities };
+            _context.SaveChanges();
+            return entities;
         }
 
-        public Result Update(T entity)
+        public T Update(T entity)
         {
             var idProperty = entity.GetType().GetProperty("Id");
             if (idProperty == null)
             {
-                return new Result { Success = false, Message = "Entity does not have an Id property" };
+                throw new ArgumentException("Entity does not have an Id property");
             }
 
             var idValue = (int)idProperty.GetValue(entity);
             var existingEntity = _context.Set<T>().Find(idValue);
-            
+
             if (existingEntity == null)
             {
-                return new Result { Success = false, Message = "Entity not found" };
+                throw new NotFoundException("Entity not found");
             }
 
             _context.Entry(existingEntity).CurrentValues.SetValues(entity);
-            return new Result { Success = true, Message = "Entity updated", Data = existingEntity };
+            _context.SaveChanges();
+            return existingEntity;
         }
 
-        public Result Delete(int id)
+        public T Delete(int id)
         {
             var entity = _context.Set<T>().Find(id);
             if (entity == null)
             {
-                return new Result { Success = false, Message = "Entity not found" };
+                throw new NotFoundException("Entity not found");
             }
 
             _context.Set<T>().Remove(entity);
-            return new Result { Success = true, Message = "Entity deleted", Data = entity };
+            _context.SaveChanges();
+            return entity;
         }
 
         public T GetById(int id)
         {
-            return _context.Set<T>().Find(id);
+            var entity = _context.Set<T>().Find(id);
+            if (entity == null)
+            {
+                throw new NotFoundException("Entity not found");
+            }
+            return entity;
         }
 
         public IEnumerable<T> GetAll()

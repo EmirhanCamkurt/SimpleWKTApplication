@@ -3,7 +3,7 @@ namespace SimpleWKTApplication.Data
 {
     public interface IUnitOfWorkGeneric : IDisposable
     {
-        IGenericRepository<Point> Points { get; }
+        IGenericRepository<Spatial> Spatials { get; }
         Task<int> CompleteAsync();
         int Complete();
     }

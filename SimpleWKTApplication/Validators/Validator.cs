@@ -1,78 +1,60 @@
 using System.Text.RegularExpressions;
 using SimpleWKTApplication.Entity;
-using SimpleWKTApplication.Response;
 
 namespace SimpleWKTApplication.Validators
 {
     public static class Validator
     {
-        public static Result Validate(Point point)
+        public static void Validate(Spatial spatial)
         {
-            var result = new Result { Success = false };
-
-            if (string.IsNullOrEmpty(point.Name))
+            if (string.IsNullOrEmpty(spatial.Name))
             {
-                result.Message = "Ýsim boþ olamaz";
-                return result;
+                throw new ValidationException("Ýsim boþ olamaz");
             }
 
-            if (point.Name.Length > 100)
+            if (spatial.Name.Length > 100)
             {
-                result.Message = "Ýsim çok uzun olamaz.";
-                return result;
+                throw new ValidationException("Ýsim çok uzun olamaz.");
             }
 
-            if (Regex.IsMatch(point.WKT,  @"^(?i)(POINT|LINESTRING|POLYGON)\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\s*\)$"))
+            string wktString = spatial.WKT?.AsText();
+            if (string.IsNullOrEmpty(wktString) ||
+                !Regex.IsMatch(wktString, @"^(?i)(POINT|LINESTRING|POLYGON)\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\s*\)$"))
             {
-                result.Success = true;
-                return result;
+                throw new ValidationException("Doðru format deðil.");
             }
-
-            result.Message = "Doðru format deðil.";
-            return result;
         }
-        public static Result ValidateForUpdate(int id, Point point, List<Point> points)
-        {
-            var result = Validate(point);
-            if (!result.Success) return result;
 
-            if (!points.Any(p => p.Id == id))
+        public static void ValidateForUpdate(int id, Spatial spatial, List<Spatial> spatials)
+        {
+            Validate(spatial);
+
+            if (!spatials.Any(p => p.Id == id))
             {
-                return new Result { Success = false, Message = "Nokta bulunamadý." };
+                throw new NotFoundException("Spatial bulunamadý.");
             }
-
-            return new Result { Success = true };
         }
-        public static Result ValidateForUpdate(int id, Point point)
-        {
-            var result = Validate(point);
-            if (!result.Success) return result;
 
-            return new Result { Success = true };
-        }
-        public static Result ValidateRange(List<Point> points)
+        public static void ValidateRange(List<Spatial> spatials)
         {
-            var result = new Result { Success = true };
             var errors = new List<string>();
 
-            for (int i = 0; i < points.Count; i++)
+            for (int i = 0; i < spatials.Count; i++)
             {
-                var validation = Validate(points[i]);
-                if (!validation.Success)
+                try
                 {
-                    errors.Add($"Nokta no: {i} Nokta ismi: {points[i].Name} Hata kodu: {validation.Message}");
-                    result.Success = false;
+                    Validate(spatials[i]);
+                }
+                catch (ValidationException ex)
+                {
+                    errors.Add($"Spatial no: {i} Spatial ismi: {spatials[i].Name} Hata kodu: {ex.Message}");
                 }
             }
 
-            if (!result.Success)
+            if (errors.Count > 0)
             {
-                result.Message = $"Validasyonu geçemeyen nokta sayýsý: {errors.Count} ";
-                result.Data = errors;
+                throw new ValidationException($"Validasyonu geçemeyen spatial sayýsý: {errors.Count}");
             }
-
-            return result;
         }
     }
-    
 }

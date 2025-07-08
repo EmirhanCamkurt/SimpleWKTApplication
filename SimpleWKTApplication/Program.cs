@@ -1,37 +1,49 @@
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.IO.Converters;
 using SimpleWKTApplication;
 using SimpleWKTApplication.Data;
 using SimpleWKTApplication.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// In Program.cs
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new GeoJsonConverterFactory());
+    });
 
-// Register the service AFTER registering DbContext
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder => builder.WithOrigins("http://localhost:3000")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+});
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("PostgreSQL"),
+        x => x.UseNetTopologySuite()
+    ));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-/*builder.Services.AddScoped<IPointService, PointService>();
-builder.Services.AddScoped<IPointService, PostgresPointService>();*/
-builder.Services.AddScoped<IPointService, EFPointService>();
+
+builder.Services.AddScoped<ISpatialService, EFSpatialService>();
 builder.Services.AddScoped<IUnitOfWorkGeneric, UnitOfWorkGeneric>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

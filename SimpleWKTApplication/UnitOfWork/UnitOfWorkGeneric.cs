@@ -5,22 +5,22 @@ namespace SimpleWKTApplication.Data
     public class UnitOfWorkGeneric : IUnitOfWorkGeneric
     {
         private readonly AppDbContext _context;
-        private IGenericRepository<Point> _points;
+        private IGenericRepository<Spatial> _spatials;
 
         public UnitOfWorkGeneric(AppDbContext context)
         {
             _context = context;
         }
 
-        public IGenericRepository<Point> Points
+        public IGenericRepository<Spatial> Spatials
         {
             get
             {
-                if (_points == null)
+                if (_spatials == null)
                 {
-                    _points = new GenericRepository<Point>(_context);
+                    _spatials = new GenericRepository<Spatial>(_context);
                 }
-                return _points;
+                return _spatials;
             }
         }
 
