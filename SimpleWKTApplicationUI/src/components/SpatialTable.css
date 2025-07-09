@@ -1,0 +1,136 @@
+.spatial-table-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.error-message {
+    color: #d32f2f;
+    background-color: #fde8e8;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.spatial-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+    .spatial-table th,
+    .spatial-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .spatial-table th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+    }
+
+.wkt-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.add-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #ff9800;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #9e9e9e;
+    color: white;
+}
+
+.save-btn {
+    background-color: #2196f3;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.pagination {
+    display: flex;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.page-btn {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
+
+    .page-btn.active {
+        background-color: #2196f3;
+        color: white;
+        border-color: #2196f3;
+    }
+
+.spatial-form {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}

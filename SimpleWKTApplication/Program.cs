@@ -12,15 +12,23 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.Converters.Add(new GeoJsonConverterFactory());
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        builder => builder.WithOrigins("http://localhost:3000")
-                          .AllowAnyMethod()
-                          .AllowAnyHeader());
+        builder => builder
+            .WithOrigins("http://localhost:5173") 
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()); 
 });
+
+
+
+
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(

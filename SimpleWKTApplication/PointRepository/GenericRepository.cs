@@ -32,7 +32,7 @@ namespace SimpleWKTApplication.Data
             var idProperty = entity.GetType().GetProperty("Id");
             if (idProperty == null)
             {
-                throw new ArgumentException("Entity does not have an Id property");
+                throw new ArgumentException("Spatial idsi yok");
             }
 
             var idValue = (int)idProperty.GetValue(entity);
@@ -40,7 +40,7 @@ namespace SimpleWKTApplication.Data
 
             if (existingEntity == null)
             {
-                throw new NotFoundException("Entity not found");
+                throw new NotFoundException("Spatial bulunamadý");
             }
 
             _context.Entry(existingEntity).CurrentValues.SetValues(entity);
@@ -53,7 +53,7 @@ namespace SimpleWKTApplication.Data
             var entity = _context.Set<T>().Find(id);
             if (entity == null)
             {
-                throw new NotFoundException("Entity not found");
+                throw new NotFoundException("Spatial bulunamadý");
             }
 
             _context.Set<T>().Remove(entity);
@@ -66,7 +66,7 @@ namespace SimpleWKTApplication.Data
             var entity = _context.Set<T>().Find(id);
             if (entity == null)
             {
-                throw new NotFoundException("Entity not found");
+                throw new NotFoundException("Spatial bulunamadý");
             }
             return entity;
         }

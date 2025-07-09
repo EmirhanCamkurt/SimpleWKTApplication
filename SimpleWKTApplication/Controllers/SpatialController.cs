@@ -57,7 +57,17 @@ namespace SimpleWKTApplication.Controllers
         }
 
         [HttpGet]
-        public List<Spatial> GetAll() => _spatialService.GetAllSpatials();
+        [HttpGet]
+        public List<Spatial> GetAll()
+        {
+            var spatials = _spatialService.GetAllSpatials();
+            return spatials.Select(s => new Spatial
+            {
+                Id = s.Id,
+                Name = s.Name,
+                WKT = s.WKT 
+            }).ToList();
+        }
 
         [HttpPut("{id}")]
         public ActionResult<Spatial> Update(int id, string name, string wkt)
@@ -75,6 +85,8 @@ namespace SimpleWKTApplication.Controllers
                 return NotFound(ex.Message);
             }
         }
+
+
 
         [HttpDelete("{id}")]
         public ActionResult<Spatial> Delete(int id)
