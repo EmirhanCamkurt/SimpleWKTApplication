@@ -1,73 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Grid, CircularProgress, Alert, Snackbar } from '@mui/material';
 import MapComponent from './components/MapComponent';
 import SpatialTable from './components/SpatialTable';
+import WKTInputForm from './components/WKTInputForm';
 import * as api from './services/api';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 
 function App() {
-  const [spatials, setSpatials] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+    const [spatials, setSpatials] = useState([]);
+    const [selectedSpatial, setSelectedSpatial] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const fetchSpatials = async () => {
-    try {
-      setLoading(true);
-      const response = await api.getSpatials();
-      setSpatials(response.data);
-      setError('');
-    } catch (err) {
-      setError(err.response?.data || 'Failed to fetch spatial data');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchSpatials = async () => {
+        try {
+            setLoading(true);
+            const data = await api.getSpatials();
+            setSpatials(data);
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+            setSnackbarOpen(true);
+            setSpatials([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    fetchSpatials();
-  }, []);
+    useEffect(() => {
+        fetchSpatials();
+    }, []);
 
-  const handleMapClick = (coords) => {
-    const lon = coords[0];
-    const lat = coords[1];
-    const defaultName = `Point at ${lon.toFixed(2)}, ${lat.toFixed(2)}`;
-    const wkt = `POINT(${lon} ${lat})`;
-    
-    if (window.confirm(`Add new point at ${lon.toFixed(2)}, ${lat.toFixed(2)}?`)) {
-      const name = prompt('Enter name for this point:', defaultName);
-      if (name) {
-        api.addSpatial(name, wkt)
-          .then(() => fetchSpatials())
-          .catch(err => setError(err.response?.data || 'Failed to add spatial'));
-      }
-    }
-  };
+    const handleFeatureAdded = async (wkt) => {
+        try {
+            const name = prompt('Enter a name for this feature:');
+            if (name) {
+                await api.createSpatial({ name, wkt });
+                await fetchSpatials();
+            }
+        } catch (err) {
+            setError(err.message);
+            setSnackbarOpen(true);
+        }
+    };
 
-  if (loading) {
-    return <Container>Loading...</Container>;
-  }
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
+    };
 
-  return (
-    <Container fluid className="mt-3">
-      {error && <div className="alert alert-danger">{error}</div>}
-      <Row>
-        <Col md={8}>
-          <h2>Spatial Data Map</h2>
-          <MapComponent 
-            spatials={spatials} 
-            onMapClick={handleMapClick} 
-          />
-        </Col>
-        <Col md={4}>
-          <h2>Spatial Data Table</h2>
-          <SpatialTable 
-            spatials={spatials} 
-            refreshData={fetchSpatials} 
-          />
-        </Col>
-      </Row>
-    </Container>
-  );
+    return (
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+            <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                    <WKTInputForm onAdd={fetchSpatials} />
+                    <MapComponent
+                        spatials={spatials}
+                        selectedSpatial={selectedSpatial}
+                        onFeatureAdded={handleFeatureAdded}
+                    />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    {loading ? (
+                        <CircularProgress />
+                    ) : (
+                        <SpatialTable
+                            spatials={spatials}
+                            selectedSpatial={selectedSpatial}
+                            onSelectSpatial={setSelectedSpatial}
+                            onRefresh={fetchSpatials}
+                        />
+                    )}
+                </Grid>
+            </Grid>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+            >
+                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+                    {error}
+                </Alert>
+            </Snackbar>
+        </Container>
+    );
 }
 
 export default App;

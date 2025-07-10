@@ -16,16 +16,22 @@ namespace SimpleWKTApplication.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Spatial> Add(string name, string wkt)
+        public ActionResult<Spatial> Add([FromBody] SpatialRequest request)
         {
             try
             {
-                return _spatialService.AddSpatial(name, wkt);
+                return _spatialService.AddSpatial(request.Name, request.Wkt);
             }
             catch (ValidationException ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        public class SpatialRequest
+        {
+            public string Name { get; set; }
+            public string Wkt { get; set; }
         }
 
         [HttpPost("range")]
@@ -56,8 +62,9 @@ namespace SimpleWKTApplication.Controllers
             }
         }
 
+      
         [HttpGet]
-        [HttpGet]
+
         public List<Spatial> GetAll()
         {
             var spatials = _spatialService.GetAllSpatials();

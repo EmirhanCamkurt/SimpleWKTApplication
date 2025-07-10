@@ -1,13 +1,31 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+
+const theme = createTheme({
+    components: {
+        MuiTableRow: {
+            styleOverrides: {
+                root: {
+                    '&.Mui-selected': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                        '&:hover': {
+                            backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                        },
+                    },
+                },
+            },
+        },
+    },
+});
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+    <React.StrictMode>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+        </ThemeProvider>
+    </React.StrictMode>,
+    document.getElementById('root')
 );
-
-reportWebVitals();

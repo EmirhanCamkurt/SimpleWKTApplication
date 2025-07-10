@@ -1,158 +1,177 @@
 import React, { useState } from 'react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    IconButton,
+    TextField,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Alert,
+    Typography
+} from '@mui/material';
+import { Edit, Delete, Visibility } from '@mui/icons-material';
 import * as api from '../services/api';
-import './SpatialTable.css';
 
-const SpatialTable = ({ spatials, refreshData }) => {
+const SpatialTable = ({ spatials = [], selectedSpatial, onSelectSpatial, onRefresh }) => {
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [currentSpatial, setCurrentSpatial] = useState(null);
-    const [name, setName] = useState('');
-    const [wkt, setWkt] = useState('');
-    const [error, setError] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const [editData, setEditData] = useState({ name: '', wkt: '' });
+    const [error, setError] = useState(null);
 
-    const handleEdit = (spatial) => {
+    // Handle undefined or null spatials
+    const safeSpatials = Array.isArray(spatials) ? spatials : [];
+
+    const handleEditClick = (spatial) => {
+        if (!spatial?.id) {
+            setError('Invalid spatial data: missing ID');
+            return;
+        }
         setCurrentSpatial(spatial);
-        setName(spatial.Name);
-        const coords = spatial.WKT?.coordinates ||
-            (spatial.WKT?.type === 'Point' ? spatial.WKT.coordinates : [0, 0]);
-        setWkt(`POINT(${coords[0]} ${coords[1]})`);
+        setEditData({
+            name: spatial.name || '',
+            wkt: spatial.wkt || ''
+        });
+        setEditDialogOpen(true);
     };
 
     const handleDelete = async (id) => {
+        if (!id) {
+            setError('Cannot delete: missing ID');
+            return;
+        }
         try {
             await api.deleteSpatial(id);
-            refreshData();
-        } catch (err) {
-            setError(err.response?.data || 'Failed to delete spatial');
+            onRefresh();
+        } catch (error) {
+            setError(`Delete failed: ${error.message || error}`);
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-
+    const handleUpdate = async () => {
+        if (!currentSpatial?.id) {
+            setError('Cannot update: missing ID');
+            return;
+        }
         try {
-            if (currentSpatial) {
-                await api.updateSpatial(currentSpatial.Id, name, wkt);
-            } else {
-                await api.addSpatial(name, wkt);
-            }
-            // Reset form after submission
-            setCurrentSpatial(null);
-            setName('');
-            setWkt('');
-            refreshData();
-        } catch (err) {
-            setError(err.response?.data || 'Failed to save spatial data');
+            await api.updateSpatial(currentSpatial.id, {
+                name: editData.name,
+                wkt: editData.wkt
+            });
+            setEditDialogOpen(false);
+            onRefresh();
+        } catch (error) {
+            setError(`Update failed: ${error.message || error}`);
         }
     };
-
-    const handleCancelEdit = () => {
-        setCurrentSpatial(null);
-        setName('');
-        setWkt('');
-    };
-
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = spatials.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(spatials.length / itemsPerPage);
 
     return (
-        <div className="spatial-table-container">
-            {error && <div className="error-message">{error}</div>}
+        <>
+            {error && (
+                <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+                    {error}
+                </Alert>
+            )}
 
-            {/* Always-visible form section */}
-            <div className="spatial-form">
-                <h3>{currentSpatial ? 'Edit Spatial' : 'Add New Spatial'}</h3>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>WKT (Well-Known Text)</label>
-                        <textarea
-                            value={wkt}
-                            onChange={(e) => setWkt(e.target.value)}
-                            required
-                            placeholder="Example: POINT(30 10)"
-                            rows={3}
-                        />
-                    </div>
-                    <div className="form-actions">
-                        <button type="submit" className="btn save-btn">
-                            {currentSpatial ? 'Update' : 'Add'} Spatial
-                        </button>
-                        {currentSpatial && (
-                            <button
-                                type="button"
-                                onClick={handleCancelEdit}
-                                className="btn cancel-btn"
-                            >
-                                Cancel
-                            </button>
-                        )}
-                    </div>
-                </form>
-            </div>
+            <TableContainer component={Paper}>
+                {safeSpatials.length === 0 ? (
+                    <Typography variant="body1" sx={{ p: 2 }}>
+                        No spatial data available
+                    </Typography>
+                ) : (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>WKT Preview</TableCell>
+                                <TableCell>Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {safeSpatials.map((spatial) => (
+                                <TableRow
+                                    key={`spatial-${spatial.id}`}
+                                    hover
+                                    selected={selectedSpatial?.id === spatial.id}
+                                    onClick={() => onSelectSpatial(spatial)}
+                                    sx={{ cursor: 'pointer' }}
+                                >
+                                    <TableCell>{spatial.id || 'N/A'}</TableCell>
+                                    <TableCell>{spatial.name || 'Unnamed'}</TableCell>
+                                    <TableCell>
+                                        {spatial.wkt ? `${spatial.wkt.substring(0, 30)}${spatial.wkt.length > 30 ? '...' : ''}` : 'N/A'}
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelectSpatial(spatial);
+                                            }}
+                                            disabled={!spatial.id}
+                                        >
+                                            <Visibility />
+                                        </IconButton>
+                                        <IconButton
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEditClick(spatial);
+                                            }}
+                                            disabled={!spatial.id}
+                                        >
+                                            <Edit />
+                                        </IconButton>
+                                        <IconButton
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (spatial.id) handleDelete(spatial.id);
+                                            }}
+                                            disabled={!spatial.id}
+                                        >
+                                            <Delete />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </TableContainer>
 
-            <table className="spatial-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Coordinates</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {currentItems.map((spatial) => {
-                        const coords = spatial.WKT?.coordinates || [null, null];
-                        return (
-                            <tr key={spatial.Id}>
-                                <td>{spatial.Id}</td>
-                                <td>{spatial.Name}</td>
-                                <td>
-                                    {coords[0]}, {coords[1]}
-                                </td>
-                                <td className="actions-cell">
-                                    <button
-                                        onClick={() => handleEdit(spatial)}
-                                        className="btn edit-btn"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(spatial.Id)}
-                                        className="btn delete-btn"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-
-            <div className="pagination">
-                {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                        key={i + 1}
-                        className={`page-btn ${i + 1 === currentPage ? 'active' : ''}`}
-                        onClick={() => setCurrentPage(i + 1)}
-                    >
-                        {i + 1}
-                    </button>
-                ))}
-            </div>
-        </div>
+            <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Edit Spatial</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Name"
+                        fullWidth
+                        margin="normal"
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    />
+                    <TextField
+                        label="WKT"
+                        fullWidth
+                        margin="normal"
+                        multiline
+                        rows={10}
+                        value={editData.wkt}
+                        onChange={(e) => setEditData({ ...editData, wkt: e.target.value })}
+                        helperText="Enter valid WKT format"
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleUpdate} color="primary">Update</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 };
 

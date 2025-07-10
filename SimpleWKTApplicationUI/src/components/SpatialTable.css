@@ -12,6 +12,14 @@
     border-radius: 4px;
 }
 
+.no-data-message {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
 .spatial-table {
     width: 100%;
     border-collapse: collapse;
@@ -84,6 +92,7 @@
     display: flex;
     gap: 5px;
     margin-top: 20px;
+    justify-content: center;
 }
 
 .page-btn {
@@ -133,4 +142,20 @@
 .form-actions {
     display: flex;
     gap: 10px;
+}
+
+
+.selected-row {
+    background-color: #fffde7 !important;
+}
+
+    .selected-row td {
+        border-bottom: 1px solid #ffeb3b !important;
+    }
+
+.wkt-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

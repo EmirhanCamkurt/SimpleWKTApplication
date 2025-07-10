@@ -7,51 +7,52 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.Converters.Add(new GeoJsonConverterFactory());
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        builder => builder
-            .WithOrigins("http://localhost:5173") 
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()); 
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-
-
-
-
-
+// Database configuration
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("PostgreSQL"),
         x => x.UseNetTopologySuite()
     ));
 
+// Dependency Injection
+builder.Services.AddScoped<IUnitOfWorkGeneric, UnitOfWorkGeneric>();
+builder.Services.AddScoped<ISpatialService, EFSpatialService>();
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<ISpatialService, EFSpatialService>();
-builder.Services.AddScoped<IUnitOfWorkGeneric, UnitOfWorkGeneric>();
-
 var app = builder.Build();
 
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();

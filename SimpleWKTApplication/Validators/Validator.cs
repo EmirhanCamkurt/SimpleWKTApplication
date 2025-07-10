@@ -17,7 +17,7 @@ namespace SimpleWKTApplication.Validators
                 throw new ValidationException("Ýsim çok uzun olamaz.");
             }
 
-            string wktString = spatial.WKT?.AsText();
+            string wktString = spatial.WKT.AsText();
             if (string.IsNullOrEmpty(wktString) ||
                 !Regex.IsMatch(wktString, @"^(?i)(POINT|LINESTRING|POLYGON)\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\s*\)$"))
             {
