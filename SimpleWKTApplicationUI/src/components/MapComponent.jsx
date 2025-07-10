@@ -39,7 +39,7 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSele
         image: new Circle({ radius: 7, fill: new Fill({ color: 'red' }) })
     });
 
-    // Initialize map
+    
     useEffect(() => {
         const initialMap = new Map({
             target: mapRef.current,
@@ -60,7 +60,7 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSele
         return () => initialMap.setTarget(undefined);
     }, []);
 
-    // Feature selection handler
+    
     useEffect(() => {
         if (!map) return;
 
@@ -78,7 +78,7 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSele
         return () => map.un('click', selectClick);
     }, [map, spatials, onFeatureSelected]);
 
-    // Update features when spatials or selection changes
+    
     useEffect(() => {
         if (!map) return;
 
@@ -116,7 +116,7 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSele
         }
     }, [spatials, selectedSpatial, map]);
 
-    // Cancel drawing function
+    
     const cancelDrawing = () => {
         if (drawInteraction) {
             map.removeInteraction(drawInteraction);
@@ -138,7 +138,7 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSele
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [drawingActive]);
 
-    // Start drawing function
+
     const startDrawing = (type) => {
         if (!map) return;
         if (drawInteraction) cancelDrawing();
