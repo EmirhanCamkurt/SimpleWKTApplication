@@ -26,7 +26,7 @@ const SpatialTable = ({ spatials = [], selectedSpatial, onSelectSpatial, onRefre
     const [editData, setEditData] = useState({ name: '', wkt: '' });
     const [error, setError] = useState(null);
 
-    // Handle undefined or null spatials
+    
     const safeSpatials = Array.isArray(spatials) ? spatials : [];
 
     const handleEditClick = (spatial) => {
@@ -55,22 +55,24 @@ const SpatialTable = ({ spatials = [], selectedSpatial, onSelectSpatial, onRefre
         }
     };
 
-    const handleUpdate = async () => {
-        if (!currentSpatial?.id) {
-            setError('Cannot update: missing ID');
-            return;
-        }
-        try {
-            await api.updateSpatial(currentSpatial.id, {
-                name: editData.name,
-                wkt: editData.wkt
-            });
-            setEditDialogOpen(false);
-            onRefresh();
-        } catch (error) {
-            setError(`Update failed: ${error.message || error}`);
-        }
-    };
+   // SpatialTable.jsx
+const handleUpdate = async () => {
+    if (!currentSpatial?.id) {
+        setError('Cannot update: missing ID');
+        return;
+    }
+    try {
+        await api.updateSpatial(currentSpatial.id, {
+            name: editData.name,
+            wkt: editData.wkt
+        });
+        setEditDialogOpen(false);
+        onRefresh(); 
+        setError(null);
+    } catch (error) {
+        setError(`Update failed: ${error.message || error}`);
+    }
+};
 
     return (
         <>

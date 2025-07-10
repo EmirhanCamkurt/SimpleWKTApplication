@@ -76,12 +76,13 @@ namespace SimpleWKTApplication.Controllers
             }).ToList();
         }
 
+        // SpatialController.cs
         [HttpPut("{id}")]
-        public ActionResult<Spatial> Update(int id, string name, string wkt)
+        public ActionResult<Spatial> Update(int id, [FromBody] SpatialRequest request)
         {
             try
             {
-                return _spatialService.UpdateSpatial(id, name, wkt);
+                return _spatialService.UpdateSpatial(id, request.Name, request.Wkt);
             }
             catch (ValidationException ex)
             {

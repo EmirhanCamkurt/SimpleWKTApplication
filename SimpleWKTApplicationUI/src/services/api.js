@@ -9,7 +9,6 @@ const api = axios.create({
     },
 });
 
-// Convert backend WKT object to WKT string
 const formatWkt = (wktObj) => {
     if (!wktObj) return '';
     switch (wktObj.type) {
@@ -24,25 +23,33 @@ const formatWkt = (wktObj) => {
     }
 };
 
-// Update transformSpatial to handle both object and string WKT
 const transformSpatial = (spatial) => {
-    // Handle case where WKT might already be a string
-    const wkt = typeof spatial.WKT === 'string'
-        ? spatial.WKT
-        : formatWkt(spatial.WKT);
+    let wkt = '';
+
+    if (typeof spatial.wkt === 'string') {
+        wkt = spatial.wkt;
+    }
+    else if (spatial.wkt && spatial.wkt.type) {
+        wkt = formatWkt(spatial.wkt);
+    }
+    else if (spatial.WKT) {
+        wkt = typeof spatial.WKT === 'string' ? spatial.WKT : formatWkt(spatial.WKT);
+    } else if (spatial.geometry) {
+        wkt = formatWkt(spatial.geometry);
+    }
 
     return {
-        id: spatial.Id,
-        name: spatial.Name,
-        wkt: wkt
+        id: spatial.id || spatial.Id,
+        name: spatial.name || spatial.Name,
+        wkt: wkt 
     };
 };
 
 export const getSpatials = async () => {
     try {
-        // Remove the interceptor temporarily for debugging
+        
         const response = await axios.get(`${API_URL}/Spatial`);
-        console.log('Full response:', response); // Log entire response
+        console.log('Full response:', response); 
 
         if (!response.data) {
             throw new Error('No data received from API');
@@ -53,19 +60,16 @@ export const getSpatials = async () => {
         return transformed;
     } catch (error) {
         console.error('API Error:', error);
-        throw error; // Re-throw to be caught in the component
+        throw error; 
     }
 };
 
-export const getSpatialById = async (id) => {
-    const response = await api.get(`/Spatial/${id}`);
-    return transformSpatial(response.data);
-};
+
 
 export const createSpatial = async (data) => {
     const response = await api.post('/Spatial', {
         Name: data.name,
-        WKT: data.wkt // Backend should handle string WKT
+        WKT: data.wkt 
     });
     return transformSpatial(response.data);
 };

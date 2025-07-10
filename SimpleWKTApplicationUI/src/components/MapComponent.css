@@ -1,4 +1,4 @@
-/* MapComponent.css */
+
 .map-container {
   width: 100%;
   height: 500px;
@@ -42,7 +42,7 @@
   background: #e0e0e0;
 }
 
-/* OL Overrides */
+
 .ol-attribution {
   background-color: rgba(255, 255, 255, 0.8) !important;
   border-radius: 4px 0 0 0 !important;
@@ -71,7 +71,7 @@
   background-color: #f0f0f0 !important;
 }
 
-/* Tooltip styles for features */
+
 .tooltip {
   position: relative;
   background: rgba(0, 0, 0, 0.7);
@@ -84,14 +84,14 @@
   pointer-events: none;
 }
 
-/* Highlight style for selected features */
+
 .feature-highlight {
   stroke: #ff5722 !important;
   stroke-width: 3px !important;
   fill: rgba(255, 87, 34, 0.2) !important;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   .map-container {
     height: 400px;
@@ -109,13 +109,51 @@
   }
 }
 
-/* Animation for draw interactions */
+
 @keyframes pulse {
   0% { opacity: 0.6; }
   50% { opacity: 1; }
   100% { opacity: 0.6; }
 }
 
+
 .drawing-active {
-  animation: pulse 1.5s infinite;
+    animation: pulse 1s infinite;
+    background-color: #ffeb3b !important;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.cancel-drawing-btn {
+    background-color: #f44336 !important;
+    color: white !important;
+    animation: pulse 1.5s infinite;
+}
+/* MapComponent.css */
+.drawing-active {
+    background-color: #ffeb3b !important;
+    animation: pulse 1s infinite;
+}
+
+.cancel-drawing-btn {
+    background-color: #f44336 !important;
+    color: white !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }

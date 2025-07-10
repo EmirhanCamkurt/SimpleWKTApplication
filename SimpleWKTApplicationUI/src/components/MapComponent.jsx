@@ -12,11 +12,13 @@ import { Draw, Modify, Snap } from 'ol/interaction';
 import 'ol/ol.css';
 import './MapComponent.css';
 
-const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
+const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded, onFeatureSelected }) => {
     const mapRef = useRef();
     const [map, setMap] = useState(null);
     const [vectorSource] = useState(new VectorSource());
     const [drawInteraction, setDrawInteraction] = useState(null);
+    const [drawingActive, setDrawingActive] = useState(false);
+    const [drawType, setDrawType] = useState(null);
     const wktFormat = new WKT();
 
     const featureStyle = new Style({
@@ -31,6 +33,13 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
         image: new Circle({ radius: 8, fill: new Fill({ color: '#ff5722' }) })
     });
 
+    const drawingStyle = new Style({
+        fill: new Fill({ color: 'rgba(255, 0, 0, 0.2)' }),
+        stroke: new Stroke({ color: 'red', width: 2 }),
+        image: new Circle({ radius: 7, fill: new Fill({ color: 'red' }) })
+    });
+
+    // Initialize map
     useEffect(() => {
         const initialMap = new Map({
             target: mapRef.current,
@@ -51,6 +60,25 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
         return () => initialMap.setTarget(undefined);
     }, []);
 
+    // Feature selection handler
+    useEffect(() => {
+        if (!map) return;
+
+        const selectClick = (e) => {
+            const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f);
+            if (feature) {
+                const spatial = spatials.find(s => s.id === feature.getId());
+                if (spatial) {
+                    onFeatureSelected(spatial);
+                }
+            }
+        };
+
+        map.on('click', selectClick);
+        return () => map.un('click', selectClick);
+    }, [map, spatials, onFeatureSelected]);
+
+    // Update features when spatials or selection changes
     useEffect(() => {
         if (!map) return;
 
@@ -88,18 +116,37 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
         }
     }, [spatials, selectedSpatial, map]);
 
+    // Cancel drawing function
+    const cancelDrawing = () => {
+        if (drawInteraction) {
+            map.removeInteraction(drawInteraction);
+            setDrawInteraction(null);
+            setDrawingActive(false);
+            setDrawType(null);
+        }
+    };
+
+    // ESC key handler for canceling drawing
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && drawingActive) {
+                cancelDrawing();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [drawingActive]);
+
+    // Start drawing function
     const startDrawing = (type) => {
         if (!map) return;
-        if (drawInteraction) map.removeInteraction(drawInteraction);
+        if (drawInteraction) cancelDrawing();
 
         const newDraw = new Draw({
             source: vectorSource,
             type: type,
-            style: new Style({
-                fill: new Fill({ color: 'rgba(255, 0, 0, 0.2)' }),
-                stroke: new Stroke({ color: 'red', width: 2 }),
-                image: new Circle({ radius: 7, fill: new Fill({ color: 'red' }) })
-            })
+            style: drawingStyle
         });
 
         newDraw.on('drawend', (event) => {
@@ -114,9 +161,13 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
             } catch (e) {
                 console.error('Error converting feature to WKT:', e);
             } finally {
-                map.removeInteraction(newDraw);
-                setDrawInteraction(null);
+                cancelDrawing();
             }
+        });
+
+        newDraw.on('drawstart', () => {
+            setDrawingActive(true);
+            setDrawType(type);
         });
 
         map.addInteraction(newDraw);
@@ -126,9 +177,35 @@ const MapComponent = ({ spatials, selectedSpatial, onFeatureAdded }) => {
     return (
         <div ref={mapRef} className="map-container">
             <div className="map-controls">
-                <button onClick={() => startDrawing('Point')}>Add Point</button>
-                <button onClick={() => startDrawing('LineString')}>Add Line</button>
-                <button onClick={() => startDrawing('Polygon')}>Add Polygon</button>
+                <button 
+                    onClick={() => startDrawing('Point')}
+                    className={drawType === 'Point' ? 'drawing-active' : ''}
+                    disabled={drawingActive && drawType !== 'Point'}
+                >
+                    Add Point
+                </button>
+                <button 
+                    onClick={() => startDrawing('LineString')}
+                    className={drawType === 'LineString' ? 'drawing-active' : ''}
+                    disabled={drawingActive && drawType !== 'LineString'}
+                >
+                    Add Line
+                </button>
+                <button 
+                    onClick={() => startDrawing('Polygon')}
+                    className={drawType === 'Polygon' ? 'drawing-active' : ''}
+                    disabled={drawingActive && drawType !== 'Polygon'}
+                >
+                    Add Polygon
+                </button>
+                {drawingActive && (
+                    <button 
+                        onClick={cancelDrawing}
+                        className="cancel-drawing-btn"
+                    >
+                        Cancel Drawing (ESC)
+                    </button>
+                )}
             </div>
         </div>
     );
