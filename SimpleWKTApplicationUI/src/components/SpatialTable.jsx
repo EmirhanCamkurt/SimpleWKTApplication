@@ -55,7 +55,7 @@ const SpatialTable = ({ spatials = [], selectedSpatial, onSelectSpatial, onRefre
         }
     };
 
-   // SpatialTable.jsx
+   
 const handleUpdate = async () => {
     if (!currentSpatial?.id) {
         setError('Cannot update: missing ID');

@@ -18,11 +18,10 @@ namespace SimpleWKTApplication.Validators
             }
 
             string wktString = spatial.WKT.AsText();
-            if (string.IsNullOrEmpty(wktString) ||
-                !Regex.IsMatch(wktString, @"^(?i)(POINT|LINESTRING|POLYGON)\s*\(\s*(-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s*,?\s*)+\s*\)$"))
+           /* if (Regex.IsMatch(wktString,@"^(?i)(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON)\s*(\(.*\))+$"))
             {
                 throw new ValidationException("Doðru format deðil.");
-            }
+            }*/
         }
 
         public static void ValidateForUpdate(int id, Spatial spatial, List<Spatial> spatials)

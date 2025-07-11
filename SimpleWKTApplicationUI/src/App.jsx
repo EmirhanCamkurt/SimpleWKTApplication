@@ -11,6 +11,7 @@ function App() {
     const [selectedSpatial, setSelectedSpatial] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const fetchSpatials = async () => {
@@ -38,6 +39,9 @@ function App() {
             if (name) {
                 await api.createSpatial({ name, wkt });
                 await fetchSpatials();
+                setSuccessMessage('Feature added successfully!');
+                setSnackbarOpen(true);
+                setError(null);
             }
         } catch (err) {
             setError(err.message);
@@ -47,6 +51,37 @@ function App() {
 
     const handleCloseSnackbar = () => {
         setSnackbarOpen(false);
+        setError(null);
+        setSuccessMessage(null);
+    };
+
+    const handleDeleteSpatial = async (id) => {
+        try {
+            await api.deleteSpatial(id);
+            await fetchSpatials();
+            setSuccessMessage('Feature deleted successfully!');
+            setSnackbarOpen(true);
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+            setSnackbarOpen(true);
+        }
+    };
+
+    const handleUpdateSpatial = async (updatedSpatial) => {
+        try {
+            await api.updateSpatial(updatedSpatial.id, {
+                name: updatedSpatial.name,
+                wkt: updatedSpatial.wkt
+            });
+            await fetchSpatials();
+            setSuccessMessage('Feature updated successfully!');
+            setSnackbarOpen(true);
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+            setSnackbarOpen(true);
+        }
     };
 
     return (
@@ -58,8 +93,9 @@ function App() {
                         spatials={spatials}
                         selectedSpatial={selectedSpatial}
                         onFeatureAdded={handleFeatureAdded}
-                        onFeatureSelected={setSelectedSpatial} 
-                        onFeatureSelected={setSelectedSpatial} 
+                        onDeleteSpatial={handleDeleteSpatial}
+                        onFeatureSelected={setSelectedSpatial}
+                        onUpdateSpatial={handleUpdateSpatial}
                     />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -81,8 +117,12 @@ function App() {
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
             >
-                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
-                    {error}
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={error ? "error" : "success"}
+                    sx={{ width: '100%' }}
+                >
+                    {error || successMessage}
                 </Alert>
             </Snackbar>
         </Container>
