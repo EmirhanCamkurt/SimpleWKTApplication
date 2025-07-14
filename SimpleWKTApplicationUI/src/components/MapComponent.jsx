@@ -91,13 +91,12 @@ const MapComponent = ({
     const handleMapClick = useCallback((e) => {
         if (!map) return;
 
-        const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f);
+        const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f, { hitTolerance: 10 });
         if (feature) {
             const spatial = spatials.find(s => s.id === feature.getId());
             if (spatial) {
                 setSelectedFeature(spatial);
                 onFeatureSelected(spatial);
-
                 const popup = map.getOverlays().getArray().find(o => o.getElement() === popupRef.current);
                 if (popup) {
                     popup.setPosition(e.coordinate);
