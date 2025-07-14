@@ -11,8 +11,8 @@ import { Style, Fill, Stroke, Circle } from 'ol/style';
 import { Draw, Modify, Snap } from 'ol/interaction';
 import Overlay from 'ol/Overlay';
 import 'ol/ol.css';
-import { Button, IconButton, Tooltip } from '@mui/material';
-import { AddLocation, Polyline, CropSquare, Close } from '@mui/icons-material';
+import { Button, IconButton, Tooltip, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { AddLocation, Polyline, CropSquare, Close, Edit, Delete } from '@mui/icons-material';
 
 const MapComponent = ({
     spatials,
@@ -30,9 +30,10 @@ const MapComponent = ({
     const [drawingActive, setDrawingActive] = useState(false);
     const [drawType, setDrawType] = useState(null);
     const [selectedFeature, setSelectedFeature] = useState(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editData, setEditData] = useState({ name: '', wkt: '' });
     const wktFormat = new WKT();
 
-   
     const featureStyle = new Style({
         fill: new Fill({ color: 'rgba(75, 123, 236, 0.2)' }),
         stroke: new Stroke({ color: '#4B7BEC', width: 2 }),
@@ -51,7 +52,6 @@ const MapComponent = ({
         image: new Circle({ radius: 7, fill: new Fill({ color: 'red' }) })
     });
 
-    
     useEffect(() => {
         if (!mapRef.current) return;
 
@@ -71,7 +71,6 @@ const MapComponent = ({
             })
         });
 
-        
         const popupOverlay = new Overlay({
             element: popupRef.current,
             autoPan: true,
@@ -79,11 +78,9 @@ const MapComponent = ({
         });
         initialMap.addOverlay(popupOverlay);
 
-     
         initialMap.addInteraction(new Modify({ source: vectorSource }));
         initialMap.addInteraction(new Snap({ source: vectorSource }));
 
-        
         setTimeout(() => initialMap.updateSize(), 100);
 
         setMap(initialMap);
@@ -91,11 +88,9 @@ const MapComponent = ({
         return () => initialMap.setTarget(undefined);
     }, []);
 
-    
     const handleMapClick = useCallback((e) => {
         if (!map) return;
 
-        
         const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f);
         if (feature) {
             const spatial = spatials.find(s => s.id === feature.getId());
@@ -103,7 +98,6 @@ const MapComponent = ({
                 setSelectedFeature(spatial);
                 onFeatureSelected(spatial);
 
-                
                 const popup = map.getOverlays().getArray().find(o => o.getElement() === popupRef.current);
                 if (popup) {
                     popup.setPosition(e.coordinate);
@@ -111,21 +105,18 @@ const MapComponent = ({
                 }
             }
         } else {
-            
             popupRef.current.style.display = 'none';
             setSelectedFeature(null);
             onFeatureSelected(null);
         }
     }, [map, spatials, onFeatureSelected]);
 
-    
     useEffect(() => {
         if (!map) return;
         map.on('click', handleMapClick);
         return () => map.un('click', handleMapClick);
     }, [map, handleMapClick]);
 
-  
     useEffect(() => {
         if (!map || !mapRef.current) return;
         const resizeObserver = new ResizeObserver(() => map.updateSize());
@@ -133,7 +124,6 @@ const MapComponent = ({
         return () => resizeObserver.disconnect();
     }, [map]);
 
-    
     useEffect(() => {
         if (!map) return;
 
@@ -157,7 +147,6 @@ const MapComponent = ({
             }
         });
 
-        
         if (selectedSpatial?.id) {
             const feature = vectorSource.getFeatureById(selectedSpatial.id);
             if (feature?.getGeometry()) {
@@ -170,7 +159,6 @@ const MapComponent = ({
         }
     }, [spatials, selectedSpatial, map]);
 
-   
     const cancelDrawing = () => {
         if (drawInteraction) {
             map.removeInteraction(drawInteraction);
@@ -180,7 +168,6 @@ const MapComponent = ({
         }
     };
 
-    
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && drawingActive) cancelDrawing();
@@ -189,7 +176,6 @@ const MapComponent = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [drawingActive]);
 
-    
     const startDrawing = (type) => {
         if (!map) return;
         if (drawInteraction) cancelDrawing();
@@ -225,7 +211,6 @@ const MapComponent = ({
         setDrawInteraction(newDraw);
     };
 
-   
     const handleDelete = async (id) => {
         try {
             await onDeleteSpatial(id);
@@ -236,19 +221,32 @@ const MapComponent = ({
         }
     };
 
-    
-    const handleUpdate = (spatial) => {
-        onUpdateSpatial(spatial);
-        setSelectedFeature(null);
-        popupRef.current.style.display = 'none';
+    const handleEditClick = (spatial) => {
+        setEditData({
+            name: spatial.name || '',
+            wkt: spatial.wkt || ''
+        });
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        try {
+            await onUpdateSpatial({
+                ...selectedFeature,
+                name: editData.name,
+                wkt: editData.wkt
+            });
+            setEditDialogOpen(false);
+            popupRef.current.style.display = 'none';
+        } catch (error) {
+            console.error('Update failed:', error);
+        }
     };
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#f5f5f5' }}>
-           
             <div ref={mapRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
 
-           
             <div style={{
                 position: 'absolute',
                 top: 16,
@@ -297,7 +295,6 @@ const MapComponent = ({
                 )}
             </div>
 
-            
             <div ref={popupRef} style={{
                 position: 'absolute',
                 backgroundColor: 'white',
@@ -324,16 +321,54 @@ const MapComponent = ({
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                            <Button onClick={() => handleUpdate(selectedFeature)} variant="contained" color="warning">
+                            <Button
+                                onClick={() => handleEditClick(selectedFeature)}
+                                variant="contained"
+                                color="warning"
+                                startIcon={<Edit />}
+                            >
                                 Edit
                             </Button>
-                            <Button onClick={() => handleDelete(selectedFeature.id)} variant="contained" color="error">
+                            <Button
+                                onClick={() => handleDelete(selectedFeature.id)}
+                                variant="contained"
+                                color="error"
+                                startIcon={<Delete />}
+                            >
                                 Delete
                             </Button>
                         </div>
                     </div>
                 )}
             </div>
+
+            <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+                <DialogTitle>Edit Feature</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Name"
+                        fullWidth
+                        margin="normal"
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    />
+                    <TextField
+                        label="WKT"
+                        fullWidth
+                        margin="normal"
+                        multiline
+                        rows={4}
+                        value={editData.wkt}
+                        onChange={(e) => setEditData({ ...editData, wkt: e.target.value })}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleUpdate} color="primary" variant="contained">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };
