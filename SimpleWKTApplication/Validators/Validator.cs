@@ -9,18 +9,18 @@ namespace SimpleWKTApplication.Validators
         {
             if (string.IsNullOrEmpty(spatial.Name))
             {
-                throw new ValidationException("Ýsim boþ olamaz");
+                throw new ValidationException("Name can't be empty.");
             }
 
             if (spatial.Name.Length > 100)
             {
-                throw new ValidationException("Ýsim çok uzun olamaz.");
+                throw new ValidationException("Name can'T be too long.");
             }
 
             string wktString = spatial.WKT.AsText();
            /* if (Regex.IsMatch(wktString,@"^(?i)(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON)\s*(\(.*\))+$"))
             {
-                throw new ValidationException("Doðru format deðil.");
+                throw new ValidationException("WKT is not in correct format.");
             }*/
         }
 
@@ -30,7 +30,7 @@ namespace SimpleWKTApplication.Validators
 
             if (!spatials.Any(p => p.Id == id))
             {
-                throw new NotFoundException("Spatial bulunamadý.");
+                throw new NotFoundException("Spatial couldn't be found.");
             }
         }
 
@@ -46,13 +46,13 @@ namespace SimpleWKTApplication.Validators
                 }
                 catch (ValidationException ex)
                 {
-                    errors.Add($"Spatial no: {i} Spatial ismi: {spatials[i].Name} Hata kodu: {ex.Message}");
+                    errors.Add($"Spatial no: {i} Spatial name: {spatials[i].Name} Error code: {ex.Message}");
                 }
             }
 
             if (errors.Count > 0)
             {
-                throw new ValidationException($"Validasyonu geçemeyen spatial sayýsý: {errors.Count}");
+                throw new ValidationException($"Number of spatials that couldn't pass the validation: {errors.Count}");
             }
         }
     }

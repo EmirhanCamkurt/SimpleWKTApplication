@@ -1,10 +1,10 @@
-
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8f9fa;
+    background-color: #f5f7fa;
+    color: #333;
 }
 
 #root {
@@ -13,31 +13,66 @@ body {
     flex-direction: column;
 }
 
-
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(241, 241, 241, 0.5);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #888;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
 }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #555;
+        background: rgba(0, 0, 0, 0.3);
     }
+
 
 .MuiPaper-root {
     border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    transition: box-shadow 0.3s ease !important;
 }
+
+    .MuiPaper-root:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+    }
 
 .MuiButton-root {
     text-transform: none !important;
     border-radius: 8px !important;
     font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    padding: 8px 16px !important;
 }
+
+.MuiButton-contained {
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+
+    .MuiButton-contained:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        transform: translateY(-1px);
+    }
+
+.MuiTableCell-root {
+    border-bottom: 1px solid rgba(224, 224, 224, 0.5) !important;
+}
+
+.MuiTableRow-root:hover {
+    background-color: rgba(25, 118, 210, 0.04) !important;
+}
+
+.MuiTableRow-root.Mui-selected {
+    background-color: rgba(25, 118, 210, 0.08) !important;
+}
+
+    .MuiTableRow-root.Mui-selected:hover {
+        background-color: rgba(25, 118, 210, 0.12) !important;
+    }
