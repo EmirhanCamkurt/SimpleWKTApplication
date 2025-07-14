@@ -33,7 +33,12 @@ function App() {
         fetchSpatials();
     }, []);
 
-   
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
+        setError(null);
+        setSuccessMessage(null);
+    };
+
     const handleFeatureAdded = async (wkt) => {
         try {
             const name = prompt('Enter a name for this feature:');
@@ -46,26 +51,6 @@ function App() {
             }
         } catch (err) {
             setError(err.message || 'Failed to add feature');
-            setSnackbarOpen(true);
-        }
-    };
-
-    const handleCloseSnackbar = () => {
-        setSnackbarOpen(false);
-        setError(null);
-        setSuccessMessage(null);
-    };
-
-    const handleDeleteSpatial = async (id) => {
-        try {
-            await api.deleteSpatial(id);
-            await fetchSpatials();
-            setSuccessMessage('Feature deleted successfully!');
-            setSnackbarOpen(true);
-            setError(null);
-            setSelectedSpatial(null);
-        } catch (err) {
-            setError(err.message || 'Failed to delete feature');
             setSnackbarOpen(true);
         }
     };
@@ -86,6 +71,20 @@ function App() {
         }
     };
 
+    const handleDeleteSpatial = async (id) => {
+        try {
+            await api.deleteSpatial(id);
+            await fetchSpatials();
+            setSuccessMessage('Feature deleted successfully!');
+            setSnackbarOpen(true);
+            setError(null);
+            setSelectedSpatial(null);
+        } catch (err) {
+            setError(err.message || 'Failed to delete feature');
+            setSnackbarOpen(true);
+        }
+    };
+
     return (
         <Container maxWidth="xl" sx={{
             py: 4,
@@ -93,7 +92,6 @@ function App() {
             flexDirection: 'column',
             gap: 3
         }}>
-            
             <Box sx={{
                 height: '70vh',
                 borderRadius: 2,
@@ -111,7 +109,6 @@ function App() {
                 />
             </Box>
 
-            
             <Box sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
@@ -120,8 +117,8 @@ function App() {
                 height: { xs: 'auto', md: '30vh' }
             }}>
                 <Paper elevation={3} sx={{
-                    flex: { xs: 'none', md: 0.4 }, 
-                    width: { xs: '100%', md: 'auto' }, 
+                    flex: { xs: 'none', md: 0.4 },
+                    width: { xs: '100%', md: 'auto' },
                     p: 3,
                     borderRadius: 2,
                     display: 'flex',
@@ -131,8 +128,8 @@ function App() {
                 </Paper>
 
                 <Paper elevation={3} sx={{
-                    flex: { xs: 'none', md: 0.6 }, 
-                    width: { xs: '100%', md: 'auto' }, 
+                    flex: { xs: 'none', md: 0.6 },
+                    width: { xs: '100%', md: 'auto' },
                     p: 2,
                     borderRadius: 2,
                     display: 'flex',
@@ -153,13 +150,18 @@ function App() {
                     )}
                 </Paper>
             </Box>
+
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} sx={{ width: '100%' }}>
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={error ? "error" : "success"}
+                    sx={{ width: '100%' }}
+                >
                     {error || successMessage}
                 </Alert>
             </Snackbar>

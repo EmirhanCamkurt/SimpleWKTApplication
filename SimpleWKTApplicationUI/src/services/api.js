@@ -66,20 +66,14 @@ export const getSpatials = async () => {
 
 
 
-export const createSpatial = async (data) => {
-    const response = await api.post('/Spatial', {
-        Name: data.name,
-        WKT: data.wkt 
-    });
-    return transformSpatial(response.data);
+export const updateSpatial = async (id, data) => {
+    const response = await axios.put(`${API_URL}/Spatial/${id}`, data);
+    return response.data;
 };
 
-export const updateSpatial = async (id, data) => {
-    const response = await api.put(`/Spatial/${id}`, {
-        Name: data.name,
-        WKT: data.wkt
-    });
-    return transformSpatial(response.data);
+export const createSpatial = async (data) => {
+    const response = await axios.post(`${API_URL}/Spatial`, data);
+    return response.data;
 };
 
 export const deleteSpatial = async (id) => {

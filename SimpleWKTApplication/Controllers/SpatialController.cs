@@ -20,7 +20,13 @@ namespace SimpleWKTApplication.Controllers
         {
             try
             {
-                return _spatialService.AddSpatial(request.Name, request.Wkt);
+                var result = _spatialService.AddSpatial(request.Name, request.Wkt);
+                return Ok(new
+                {
+                    Id = result.Id,
+                    Name = result.Name,
+                    WKT = result.WKT.ToString() // Convert geometry to WKT string
+                });
             }
             catch (ValidationException ex)
             {
@@ -28,6 +34,28 @@ namespace SimpleWKTApplication.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public ActionResult<Spatial> Update(int id, [FromBody] SpatialRequest request)
+        {
+            try
+            {
+                var result = _spatialService.UpdateSpatial(id, request.Name, request.Wkt);
+                return Ok(new
+                {
+                    Id = result.Id,
+                    Name = result.Name,
+                    WKT = result.WKT.ToString() // Convert geometry to WKT string
+                });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
         public class SpatialRequest
         {
             public string Name { get; set; }
@@ -76,23 +104,7 @@ namespace SimpleWKTApplication.Controllers
             }).ToList();
         }
 
-        
-        [HttpPut("{id}")]
-        public ActionResult<Spatial> Update(int id, [FromBody] SpatialRequest request)
-        {
-            try
-            {
-                return _spatialService.UpdateSpatial(id, request.Name, request.Wkt);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-        }
+
 
 
 
