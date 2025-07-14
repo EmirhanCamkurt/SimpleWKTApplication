@@ -1,59 +1,70 @@
-
 .spatial-table-container {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .table-header {
-    padding: 16px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(224, 224, 224, 0.5);
+    background-color: white;
 }
 
 .table-title {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: #1976d2;
 }
 
 .table-toolbar {
     display: flex;
     justify-content: space-between;
-    padding: 16px;
+    align-items: center;
+    padding: 12px 24px;
     background-color: #f9f9f9;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(224, 224, 224, 0.5);
 }
 
 .table-wrapper {
     flex: 1;
     overflow: auto;
+    scrollbar-width: thin;
 }
 
 .spatial-table {
     width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
     .spatial-table th {
-        background-color: #f5f5f5;
+        background-color: #f5f9ff;
         font-weight: 600;
-        color: #333;
+        color: #1976d2;
         position: sticky;
         top: 0;
         z-index: 10;
+        padding: 16px;
+        border-bottom: 2px solid rgba(25, 118, 210, 0.2);
     }
 
-    .spatial-table tr:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+    .spatial-table td {
+        padding: 12px 16px;
+        vertical-align: middle;
     }
 
-    .spatial-table tr.Mui-selected {
-        background-color: rgba(25, 118, 210, 0.08);
+    .spatial-table tr {
+        height: 56px;
+        transition: background-color 0.2s ease;
     }
 
-        .spatial-table tr.Mui-selected:hover {
-            background-color: rgba(25, 118, 210, 0.12);
+        .spatial-table tr:last-child td {
+            border-bottom: none;
         }
 
 .actions-cell {
@@ -66,14 +77,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-family: monospace;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    color: #555;
 }
 
 .pagination {
     padding: 16px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid rgba(224, 224, 224, 0.5);
     display: flex;
     justify-content: center;
+    background-color: white;
 }
 
 .empty-state {
@@ -84,6 +98,7 @@
     justify-content: center;
     color: #666;
     padding: 40px;
+    text-align: center;
 }
 
 .empty-state-icon {
@@ -92,10 +107,21 @@
     color: #bdbdbd;
 }
 
-.spatial-table tr {
-    height: 53px; 
+
+.action-button {
+    color: #1976d2;
+    transition: all 0.2s ease;
 }
 
-.spatial-table th {
-    height: 56px; 
+    .action-button:hover {
+        background-color: rgba(25, 118, 210, 0.1);
+        transform: scale(1.1);
+    }
+
+.delete-button {
+    color: #f44336;
 }
+
+    .delete-button:hover {
+        background-color: rgba(244, 67, 54, 0.1);
+    }
