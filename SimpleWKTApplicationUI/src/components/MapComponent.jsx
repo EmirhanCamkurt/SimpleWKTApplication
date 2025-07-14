@@ -11,7 +11,8 @@ import { Style, Fill, Stroke, Circle } from 'ol/style';
 import { Draw, Modify, Snap } from 'ol/interaction';
 import Overlay from 'ol/Overlay';
 import 'ol/ol.css';
-import './MapComponent.css';
+import { Button, IconButton, Tooltip } from '@mui/material';
+import { AddLocation, Polyline, CropSquare, Close } from '@mui/icons-material';
 
 const MapComponent = ({
     spatials,
@@ -21,8 +22,8 @@ const MapComponent = ({
     onDeleteSpatial,
     onUpdateSpatial
 }) => {
-    const mapRef = useRef();
-    const popupRef = useRef();
+    const mapRef = useRef(null);
+    const popupRef = useRef(null);
     const [map, setMap] = useState(null);
     const [vectorSource] = useState(new VectorSource());
     const [drawInteraction, setDrawInteraction] = useState(null);
@@ -52,6 +53,8 @@ const MapComponent = ({
 
     
     useEffect(() => {
+        if (!mapRef.current) return;
+
         const initialMap = new Map({
             target: mapRef.current,
             layers: [
@@ -61,19 +64,28 @@ const MapComponent = ({
                     style: (feature) => feature.get('selected') ? selectedStyle : featureStyle
                 })
             ],
-            view: new View({ center: fromLonLat([0, 0]), zoom: 2 }),
-            overlays: [
-                new Overlay({
-                    element: popupRef.current,
-                    autoPan: true,
-                    autoPanAnimation: { duration: 250 },
-                    positioning: 'bottom-center'
-                })
-            ]
+            view: new View({
+                center: fromLonLat([0, 0]),
+                zoom: 2,
+                constrainResolution: true
+            })
         });
 
+        
+        const popupOverlay = new Overlay({
+            element: popupRef.current,
+            autoPan: true,
+            autoPanAnimation: { duration: 250 }
+        });
+        initialMap.addOverlay(popupOverlay);
+
+     
         initialMap.addInteraction(new Modify({ source: vectorSource }));
         initialMap.addInteraction(new Snap({ source: vectorSource }));
+
+        
+        setTimeout(() => initialMap.updateSize(), 100);
+
         setMap(initialMap);
 
         return () => initialMap.setTarget(undefined);
@@ -81,6 +93,9 @@ const MapComponent = ({
 
     
     const handleMapClick = useCallback((e) => {
+        if (!map) return;
+
+        
         const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f);
         if (feature) {
             const spatial = spatials.find(s => s.id === feature.getId());
@@ -89,18 +104,34 @@ const MapComponent = ({
                 onFeatureSelected(spatial);
 
                 
-                const popup = map.getOverlays().getArray()[0];
-                popup.setPosition(e.coordinate);
+                const popup = map.getOverlays().getArray().find(o => o.getElement() === popupRef.current);
+                if (popup) {
+                    popup.setPosition(e.coordinate);
+                    popupRef.current.style.display = 'block';
+                }
             }
+        } else {
+            
+            popupRef.current.style.display = 'none';
+            setSelectedFeature(null);
+            onFeatureSelected(null);
         }
     }, [map, spatials, onFeatureSelected]);
 
+    
     useEffect(() => {
         if (!map) return;
-
         map.on('click', handleMapClick);
         return () => map.un('click', handleMapClick);
     }, [map, handleMapClick]);
+
+  
+    useEffect(() => {
+        if (!map || !mapRef.current) return;
+        const resizeObserver = new ResizeObserver(() => map.updateSize());
+        resizeObserver.observe(mapRef.current);
+        return () => resizeObserver.disconnect();
+    }, [map]);
 
     
     useEffect(() => {
@@ -114,7 +145,6 @@ const MapComponent = ({
                         dataProjection: 'EPSG:4326',
                         featureProjection: 'EPSG:3857'
                     });
-
                     if (feature) {
                         feature.setId(spatial.id);
                         feature.set('name', spatial.name || 'Unnamed');
@@ -127,7 +157,7 @@ const MapComponent = ({
             }
         });
 
-       
+        
         if (selectedSpatial?.id) {
             const feature = vectorSource.getFeatureById(selectedSpatial.id);
             if (feature?.getGeometry()) {
@@ -153,15 +183,13 @@ const MapComponent = ({
     
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && drawingActive) {
-                cancelDrawing();
-            }
+            if (e.key === 'Escape' && drawingActive) cancelDrawing();
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [drawingActive]);
 
+    
     const startDrawing = (type) => {
         if (!map) return;
         if (drawInteraction) cancelDrawing();
@@ -197,77 +225,111 @@ const MapComponent = ({
         setDrawInteraction(newDraw);
     };
 
-    
+   
     const handleDelete = async (id) => {
         try {
             await onDeleteSpatial(id);
             setSelectedFeature(null);
+            popupRef.current.style.display = 'none';
         } catch (error) {
             console.error('Delete failed:', error);
         }
     };
 
+    
     const handleUpdate = (spatial) => {
         onUpdateSpatial(spatial);
         setSelectedFeature(null);
+        popupRef.current.style.display = 'none';
     };
 
     return (
-        <div ref={mapRef} className="map-container">
-            <div className="map-controls">
-                <button
-                    onClick={() => startDrawing('Point')}
-                    className={drawType === 'Point' ? 'drawing-active' : ''}
-                    disabled={drawingActive && drawType !== 'Point'}
-                >
-                    Add Point
-                </button>
-                <button
-                    onClick={() => startDrawing('LineString')}
-                    className={drawType === 'LineString' ? 'drawing-active' : ''}
-                    disabled={drawingActive && drawType !== 'LineString'}
-                >
-                    Add Line
-                </button>
-                <button
-                    onClick={() => startDrawing('Polygon')}
-                    className={drawType === 'Polygon' ? 'drawing-active' : ''}
-                    disabled={drawingActive && drawType !== 'Polygon'}
-                >
-                    Add Polygon
-                </button>
-                {drawingActive && (
-                    <button
-                        onClick={cancelDrawing}
-                        className="cancel-drawing-btn"
+        <div style={{ position: 'relative', width: '100%', height: '100%', backgroundColor: '#f5f5f5' }}>
+           
+            <div ref={mapRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+
+           
+            <div style={{
+                position: 'absolute',
+                top: 16,
+                left: 16,
+                zIndex: 1000,
+                display: 'flex',
+                gap: 8,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+            }}>
+                <Tooltip title="Add Point">
+                    <IconButton
+                        onClick={() => startDrawing('Point')}
+                        style={{ backgroundColor: drawType === 'Point' ? '#ffeb3b' : 'inherit' }}
+                        disabled={drawingActive && drawType !== 'Point'}
                     >
-                        Cancel Drawing (ESC)
-                    </button>
+                        <AddLocation />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Add Line">
+                    <IconButton
+                        onClick={() => startDrawing('LineString')}
+                        style={{ backgroundColor: drawType === 'LineString' ? '#ffeb3b' : 'inherit' }}
+                        disabled={drawingActive && drawType !== 'LineString'}
+                    >
+                        <Polyline />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Add Polygon">
+                    <IconButton
+                        onClick={() => startDrawing('Polygon')}
+                        style={{ backgroundColor: drawType === 'Polygon' ? '#ffeb3b' : 'inherit' }}
+                        disabled={drawingActive && drawType !== 'Polygon'}
+                    >
+                        <CropSquare />
+                    </IconButton>
+                </Tooltip>
+                {drawingActive && (
+                    <Tooltip title="Cancel Drawing">
+                        <IconButton onClick={cancelDrawing} style={{ backgroundColor: '#f44336', color: 'white' }}>
+                            <Close />
+                        </IconButton>
+                    </Tooltip>
                 )}
             </div>
 
-            <div ref={popupRef} className="ol-popup">
+            
+            <div ref={popupRef} style={{
+                position: 'absolute',
+                backgroundColor: 'white',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                padding: '15px',
+                borderRadius: '10px',
+                border: '1px solid #ccc',
+                minWidth: '250px',
+                display: 'none',
+                zIndex: 1000
+            }}>
                 {selectedFeature && (
-                    <div className="popup-content">
-                        <h3>{selectedFeature.name || 'Unnamed Feature'}</h3>
-                        <div className="popup-details">
-                            <p><strong>ID:</strong> {selectedFeature.id}</p>
-                            <p><strong>Type:</strong> {selectedFeature.wkt.split('(')[0]}</p>
-                            <p><strong>Coordinates:</strong> {selectedFeature.wkt.match(/\(([^)]+)\)/)[1]}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <h3 style={{ margin: 0 }}>{selectedFeature.name || 'Unnamed Feature'}</h3>
+                        <div style={{ margin: '8px 0' }}>
+                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                <strong>ID:</strong> {selectedFeature.id}
+                            </p>
+                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                <strong>Type:</strong> {selectedFeature.wkt.split('(')[0]}
+                            </p>
+                            <p style={{ margin: '4px 0', fontSize: '14px', wordBreak: 'break-all' }}>
+                                <strong>Coordinates:</strong> {selectedFeature.wkt.match(/\(([^)]+)\)/)[1]}
+                            </p>
                         </div>
-                        <div className="popup-actions">
-                            <button
-                                onClick={() => handleUpdate(selectedFeature)}
-                                className="popup-btn edit-btn"
-                            >
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                            <Button onClick={() => handleUpdate(selectedFeature)} variant="contained" color="warning">
                                 Edit
-                            </button>
-                            <button
-                                onClick={() => handleDelete(selectedFeature.id)}
-                                className="popup-btn delete-btn"
-                            >
+                            </Button>
+                            <Button onClick={() => handleDelete(selectedFeature.id)} variant="contained" color="error">
                                 Delete
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}

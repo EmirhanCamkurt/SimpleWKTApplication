@@ -13,9 +13,9 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new GeoJsonConverterFactory());
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; 
     });
-
-// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

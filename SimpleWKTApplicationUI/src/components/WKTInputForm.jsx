@@ -6,10 +6,12 @@ const WKTInputForm = ({ onAdd }) => {
     const [name, setName] = useState('');
     const [wkt, setWkt] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
             await api.createSpatial({ name, wkt });
@@ -17,12 +19,14 @@ const WKTInputForm = ({ onAdd }) => {
             setName('');
             setWkt('');
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Failed to add spatial data');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <Paper style={{ padding: '20px', marginBottom: '20px' }}>
+        <Paper  elevation={3} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
                 Add New Spatial Data
             </Typography>
@@ -47,8 +51,14 @@ const WKTInputForm = ({ onAdd }) => {
                     required
                     placeholder="Example: POINT(30 10) or POLYGON((30 10, 40 40, 20 40, 10 20, 30 10))"
                 />
-                <Button type="submit" variant="contained" color="primary" style={{ marginTop: '10px' }}>
-                    Add Spatial Data
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                    disabled={loading}
+                >
+                    {loading ? 'Adding...' : 'Add Spatial Data'}
                 </Button>
             </form>
         </Paper>

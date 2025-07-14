@@ -1,203 +1,115 @@
-.map-container {
-    width: 100%;
-    height: 500px;
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+/* MapComponent.css */
+/* Base OL styles */
+.ol-control {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    padding: 6px !important;
 }
 
-.map-controls {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    display: flex;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px 12px;
-    border-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-    .map-controls button {
-        padding: 6px 12px;
-        background: #ffffff;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        color: #333;
-        transition: all 0.2s ease;
-    }
-
-        .map-controls button:hover {
-            background: #f0f0f0;
-            border-color: #bbb;
-        }
-
-        .map-controls button:active {
-            background: #e0e0e0;
-        }
-
-/* Popup styles */
-.ol-popup {
-    position: absolute;
-    background-color: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #cccccc;
-    bottom: 12px;
-    left: -50px;
-    min-width: 250px;
-    display: none;
-    z-index: 1000;
-}
-
-    .ol-popup.visible {
-        display: block;
-    }
-
-    .ol-popup:after, .ol-popup:before {
-        top: 100%;
-        border: solid transparent;
-        content: " ";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-    }
-
-    .ol-popup:after {
-        border-top-color: white;
-        border-width: 10px;
-        left: 48px;
-        margin-left: -10px;
-    }
-
-    .ol-popup:before {
-        border-top-color: #cccccc;
-        border-width: 11px;
-        left: 48px;
-        margin-left: -11px;
-    }
-
-.popup-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.popup-details {
-    margin: 8px 0;
-}
-
-    .popup-details p {
-        margin: 4px 0;
-        font-size: 14px;
-        word-break: break-all;
-    }
-
-.popup-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.popup-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-    flex: 1;
-}
-
-    .popup-btn.edit-btn {
-        background-color: #ff9800;
-        color: white;
-    }
-
-    .popup-btn.delete-btn {
-        background-color: #f44336;
-        color: white;
-    }
-
-    .popup-btn:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-    }
-
-/* Drawing state styles */
-.drawing-active {
-    background-color: #ffeb3b !important;
-    animation: pulse 1s infinite;
-}
-
-.cancel-drawing-btn {
-    background-color: #f44336 !important;
-    color: white !important;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* OL default controls styling */
 .ol-attribution {
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 4px 0 0 0 !important;
-    padding: 2px 4px !important;
-    font-size: 11px !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px 0 0 0 !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    top: auto !important;
 }
 
 .ol-zoom {
-    top: auto !important;
-    bottom: 10px !important;
+    top: 16px !important;
+    right: 16px !important;
     left: auto !important;
-    right: 10px !important;
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 4px !important;
-    padding: 4px !important;
+    bottom: auto !important;
 }
 
 .ol-zoom-in, .ol-zoom-out {
     background-color: white !important;
     color: #333 !important;
-    border-radius: 2px !important;
+    border-radius: 4px !important;
     margin: 2px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 18px !important;
+    line-height: 32px !important;
 }
 
     .ol-zoom-in:hover, .ol-zoom-out:hover {
-        background-color: #f0f0f0 !important;
+        background-color: #f5f5f5 !important;
     }
 
-@media (max-width: 768px) {
-    .map-container {
-        height: 400px;
+
+.map-controls {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    display: flex;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.map-control-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+    .map-control-button.active {
+        background-color: #1976d2;
+        color: white;
+        animation: pulse 1.5s infinite;
     }
 
-    .map-controls {
-        top: 5px;
-        left: 5px;
-        padding: 6px;
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.4);
     }
 
-        .map-controls button {
-            padding: 4px 8px;
-            font-size: 12px;
-        }
+    70% {
+        box-shadow: 0 0 0 10px rgba(25, 118, 210, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(25, 118, 210, 0);
+    }
+}
+
+/* Popup styles */
+.map-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    min-width: 280px;
+    z-index: 1000;
+}
+
+    .map-popup h3 {
+        margin: 0 0 12px 0;
+        color: #333;
+        font-size: 16px;
+    }
+
+.map-popup-content {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.map-popup-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
 }

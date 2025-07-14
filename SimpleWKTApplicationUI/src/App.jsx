@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, CircularProgress, Alert, Snackbar } from '@mui/material';
+import { Container, Box, CircularProgress, Alert, Snackbar, Paper } from '@mui/material';
 import MapComponent from './components/MapComponent';
 import SpatialTable from './components/SpatialTable';
 import WKTInputForm from './components/WKTInputForm';
@@ -21,7 +21,7 @@ function App() {
             setSpatials(data);
             setError(null);
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Failed to load spatial data');
             setSnackbarOpen(true);
             setSpatials([]);
         } finally {
@@ -33,6 +33,7 @@ function App() {
         fetchSpatials();
     }, []);
 
+   
     const handleFeatureAdded = async (wkt) => {
         try {
             const name = prompt('Enter a name for this feature:');
@@ -44,7 +45,7 @@ function App() {
                 setError(null);
             }
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Failed to add feature');
             setSnackbarOpen(true);
         }
     };
@@ -62,8 +63,9 @@ function App() {
             setSuccessMessage('Feature deleted successfully!');
             setSnackbarOpen(true);
             setError(null);
+            setSelectedSpatial(null);
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Failed to delete feature');
             setSnackbarOpen(true);
         }
     };
@@ -79,28 +81,68 @@ function App() {
             setSnackbarOpen(true);
             setError(null);
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Failed to update feature');
             setSnackbarOpen(true);
         }
     };
 
     return (
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-            <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+        <Container maxWidth="xl" sx={{
+            py: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
+        }}>
+            
+            <Box sx={{
+                height: '70vh',
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: 3,
+                position: 'relative'
+            }}>
+                <MapComponent
+                    spatials={spatials}
+                    selectedSpatial={selectedSpatial}
+                    onFeatureAdded={handleFeatureAdded}
+                    onFeatureSelected={setSelectedSpatial}
+                    onDeleteSpatial={handleDeleteSpatial}
+                    onUpdateSpatial={handleUpdateSpatial}
+                />
+            </Box>
+
+            
+            <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                gap: 3,
+                minHeight: '30vh',
+                height: { xs: 'auto', md: '30vh' }
+            }}>
+                <Paper elevation={3} sx={{
+                    flex: { xs: 'none', md: 0.4 }, 
+                    width: { xs: '100%', md: 'auto' }, 
+                    p: 3,
+                    borderRadius: 2,
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
                     <WKTInputForm onAdd={fetchSpatials} />
-                    <MapComponent
-                        spatials={spatials}
-                        selectedSpatial={selectedSpatial}
-                        onFeatureAdded={handleFeatureAdded}
-                        onDeleteSpatial={handleDeleteSpatial}
-                        onFeatureSelected={setSelectedSpatial}
-                        onUpdateSpatial={handleUpdateSpatial}
-                    />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Paper>
+
+                <Paper elevation={3} sx={{
+                    flex: { xs: 'none', md: 0.6 }, 
+                    width: { xs: '100%', md: 'auto' }, 
+                    p: 2,
+                    borderRadius: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                }}>
                     {loading ? (
-                        <CircularProgress />
+                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                            <CircularProgress />
+                        </Box>
                     ) : (
                         <SpatialTable
                             spatials={spatials}
@@ -109,19 +151,15 @@ function App() {
                             onRefresh={fetchSpatials}
                         />
                     )}
-                </Grid>
-            </Grid>
-
+                </Paper>
+            </Box>
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={error ? "error" : "success"}
-                    sx={{ width: '100%' }}
-                >
+                <Alert onClose={handleCloseSnackbar} severity={error ? "error" : "success"} sx={{ width: '100%' }}>
                     {error || successMessage}
                 </Alert>
             </Snackbar>
